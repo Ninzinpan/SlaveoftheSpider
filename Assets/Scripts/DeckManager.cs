@@ -124,6 +124,25 @@ public class DeckManager : MonoBehaviour
         }
         currentHand.Clear();
     }
+
+    public void DiscardSpecificCard(CardDisplay cardDisplay)
+    {
+        if (cardDisplay == null) return;
+
+        // 1. データだけ捨て札リストに移す
+        discardPile.Add(cardDisplay.CardData);
+
+        // 2. 手札リスト（管理用）から除外する
+        if (currentHand.Contains(cardDisplay))
+        {
+            currentHand.Remove(cardDisplay);
+        }
+
+        // 3. 画面上のオブジェクトを破壊する
+        Destroy(cardDisplay.gameObject);
+
+        Debug.Log("カードを捨て札に送りました");
+    }
     // ... (既存のコードの続き)
 
     // --- ボタンから呼び出すためのメソッド ---

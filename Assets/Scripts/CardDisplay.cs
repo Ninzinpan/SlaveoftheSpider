@@ -1,8 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI; // Imageコンポーネント用
 using TMPro;          // TextMeshPro用
+using UnityEngine.EventSystems; // クリック処理用
 
-public class CardDisplay : MonoBehaviour
+public class CardDisplay : MonoBehaviour,IPointerClickHandler
 {
     [Header("UI Parts (Drag & Drop here)")]
     [SerializeField] private TextMeshProUGUI costText;
@@ -13,6 +14,7 @@ public class CardDisplay : MonoBehaviour
 
     // 外部からこのカードが何のデータか参照するためのプロパティ
     public CardData CardData { get; private set; }
+
 
     /// <summary>
     /// データを注入して表示を更新するメインメソッド
@@ -25,6 +27,7 @@ public class CardDisplay : MonoBehaviour
             Debug.LogError("CardDisplay: データがnullです");
             return;
         }
+        
 
         // データを保持（後でクリック処理などに使う）
         CardData = data;
@@ -34,27 +37,10 @@ public class CardDisplay : MonoBehaviour
         // 安全装置2: インスペクタでの設定忘れチェック (?. は「nullじゃなければ実行」)
         costText?.SetText(data.Cost.ToString());
         nameText?.SetText(data.CardName);
+        typeText?.SetText(data.Type.ToString());
         descriptionText?.SetText(data.Description);
 
-        // タイプの反映（Enumを日本語の文字列に変換）
-        if (typeText != null)
-        {
-            switch (data.Type)
-            {
-                case CardType.Attack:
-                    typeText.text = "攻撃";
-                    break;
-                case CardType.Skill:
-                    typeText.text = "スキル";
-                    break;
-                case CardType.Power:
-                    typeText.text = "パワー";
-                    break;
-                default:
-                    typeText.text = "その他";
-                    break;
-            }
-        }
+
 
         // --- 画像の反映 ---
         if (cardArtImage != null && data.Icon != null)
@@ -62,4 +48,32 @@ public class CardDisplay : MonoBehaviour
             cardArtImage.sprite = data.Icon;
         }
     }
+
+private BattleManager battleManager;
+    private void Start()
+    {
+        try 
+        {
+            battleManager = FindFirstObjectByType<BattleManager>();
+        }
+        catch
+        {
+            Debug.LogError("CardDisplay: BattleManagerが見つかりません！");
+        }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        // BattleManagerに「このカード (this) が押されたよ」と報告
+        if (battleManager != null)
+        {
+            battleManager.OnCardClicked(this);
+            Debug.Log("CardDisplay: カードがクリックされました.");
+        }
+        else
+        {
+            Debug.LogError("CardDisplay: BattleManagerがセットされていません！");
+        }
+    }
+
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   maxHP: 80
   baseEnergy: 3
   baseDrawCount: 5
-  playerSprite: {fileID: 8765176241156817201, guid: 7fd08f4a0ac724c6880f3e7a49389046, type: 3}
+  playerSprite: {fileID: -488269329879648387, guid: c20e3f726c4034a589bacf3d7f229077, type: 3}
   startingDeck:
   - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
   - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
@@ -23,7 +23,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
   - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
   - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
-  - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
-  - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
-  - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
-  - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
+  - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}
+  - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}
+  - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}
+  - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}
+  - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}

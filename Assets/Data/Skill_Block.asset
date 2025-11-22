@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbc6f2ead240428bbea23c87a43bd7e, type: 3}
   m_Name: Skill_Block
   m_EditorClassIdentifier: Assembly-CSharp::CardData
-  cardName: "\u30B9\u30C8\u30E9\u30A4\u30AF"
+  cardName: "\u30D6\u30ED\u30C3\u30AF"
   cost: 1
-  icon: {fileID: 8765176241156817201, guid: 7fd08f4a0ac724c6880f3e7a49389046, type: 3}
-  description: "\u76F8\u624B\u306B\uFF12\u30C0\u30E1\u30FC\u30B8\u3092\u4E0E\u3048\u308B\u3002"
-  cardType: 0
+  icon: {fileID: -2732725513478169622, guid: 4c7692aa6c88645c59609e12a0abbbba, type: 3}
+  description: "2\u9632\u5FA1\u4E0E\u3048\u308B\u3002"
+  cardType: 1
   effects:
-  - effectType: 0
+  - effectType: 1
     value: 2
