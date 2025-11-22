@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.InputSystem;
+using UnityEngine.UI; // Buttonを操作するために必要
 
 // 状態の定義
 public enum BattleState
@@ -17,6 +18,7 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private PlayerManager playerManager;
     [SerializeField] private DeckManager deckManager;
     // [SerializeField] private TargetingUI targetingUI; // 後で作るターゲット矢印UI
+    [SerializeField] private Button endTurnButton; // 【追加】ターン終了ボタン
 
     // 現在の状態（インスペクタで確認用）
     [Header("State")]
@@ -78,7 +80,7 @@ public class BattleManager : MonoBehaviour
         if (currentState != BattleState.Targeting) return;
 
         // ターゲット選択完了！シーケンスを開始
-        StartCoroutine(CardPlaySequence(selectedDisplay.CardData, targetEnemy));
+        StartCoroutine(CardPlaySequence(selectedDisplay, targetEnemy));
         
         // 選択状態をリセット
         CancelTargeting(); 
@@ -94,13 +96,15 @@ public class BattleManager : MonoBehaviour
         // TODO: targetingUI.Hide();
     }
 
+
     // --- 4. カード発動シーケンス (コルーチン) ---
     // ここに「演出」と「処理」を順番に書いていく
-    private IEnumerator CardPlaySequence(CardData cardData, GameObject target)
+    private IEnumerator CardPlaySequence(CardDisplay selectedDisplay, GameObject target)
     {
         // 状態を「処理中」にして、入力をブロック
         BattleState previousState = currentState;
         currentState = BattleState.Busy;
+        CardData cardData = selectedDisplay.CardData;
 
         Debug.Log($"カード発動シーケンス開始: {cardData.CardName}");
 
@@ -146,10 +150,70 @@ public class BattleManager : MonoBehaviour
         // --- E. カードを捨てる ---
         deckManager.DiscardSpecificCard(selectedDisplay);
         // 参照を外しておく（安全のため）
-        selectedDisplay = null;
 
         // --- F. 処理完了 ---
         // 勝利していなければプレイヤーターンに戻す
         currentState = BattleState.PlayerTurn;
+    }
+    public void OnEndTurnButton()
+    {
+        // プレイヤーのターンでなければ押せない
+        if (currentState != BattleState.PlayerTurn) return;
+
+        // 敵ターンへの遷移を開始
+        StartCoroutine(EnemyTurnSequence());
+    }
+    private IEnumerator EnemyTurnSequence()
+    {
+        // 1. 状態変更 & ボタン無効化
+        currentState = BattleState.EnemyTurn;
+        if (endTurnButton != null) endTurnButton.interactable = false;
+
+        Debug.Log("--- 敵ターン開始 ---");
+
+        // 2. 手札を捨てる
+        deckManager.DiscardHand();
+
+        // ターゲット選択中だったら解除しておく
+        if (selectedDisplay != null) CancelTargeting();
+
+        // 3. 全ての敵に行動させる
+        // (FindObjectsByType でシーン上の敵を全部見つける)
+        var enemies = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
+
+        foreach (var enemy in enemies)
+        {
+            // 生きている敵だけ行動
+            if (enemy.gameObject.activeSelf)
+            {
+                // 敵の行動コルーチンを呼び、終わるのを待つ (Wait)
+                yield return StartCoroutine(enemy.PerformTurn());
+            }
+        }
+
+        Debug.Log("--- 敵ターン終了 ---");
+
+        // 4. プレイヤーのターンを開始する
+        StartPlayerTurn();
+    }
+
+    // --- 【追加】プレイヤーターンの開始処理 ---
+    private void StartPlayerTurn()
+    {
+        currentState = BattleState.PlayerTurn;
+        
+        // UI操作を許可
+        if (endTurnButton != null) endTurnButton.interactable = true;
+
+        // エナジー回復
+        playerManager.OnTurnStart();
+
+        // カードを引く (例えば5枚)
+        deckManager.DrawCard(5);
+        
+        // 敵の次の行動(Intent)を更新してもらう
+        // (EnemyController側で管理しているなら不要だが、念のため再取得指示などがここに入りうる)
+        
+        Debug.Log("--- プレイヤーターン開始 ---");
     }
 }

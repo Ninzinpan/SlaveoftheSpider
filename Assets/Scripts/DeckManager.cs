@@ -127,7 +127,10 @@ public class DeckManager : MonoBehaviour
 
     public void DiscardSpecificCard(CardDisplay cardDisplay)
     {
-        if (cardDisplay == null) return;
+        if (cardDisplay == null) {
+            Debug.LogError("DeckManager: DiscardSpecificCardにnullが渡されました");
+        return;
+        }
 
         // 1. データだけ捨て札リストに移す
         discardPile.Add(cardDisplay.CardData);
