@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic; // ← 【重要】これを追加してください！
 using UnityEngine.InputSystem;
 using UnityEngine.UI; // Buttonを操作するために必要
 
@@ -17,7 +18,7 @@ public class BattleManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private PlayerManager playerManager;
     [SerializeField] private DeckManager deckManager;
-    // [SerializeField] private TargetingUI targetingUI; // 後で作るターゲット矢印UI
+    [SerializeField] private TargetingUI targetingUI; // 後で作るターゲット矢印UI
     [SerializeField] private Button endTurnButton; // 【追加】ターン終了ボタン
 
     // 現在の状態（インスペクタで確認用）
@@ -68,24 +69,51 @@ public class BattleManager : MonoBehaviour
         currentState = BattleState.Targeting;
         
         Debug.Log($"ターゲット選択開始: {cardDisplay.CardData.CardName}");
+        if (targetingUI != null) targetingUI.Show();
         
         // TODO: targetingUI.Show(startPosition, mousePosition);
     }
 
     // --- 2. ターゲット（敵）がクリックされた時の処理 ---
     // ※EnemyManagerスクリプトからこのメソッドを呼んでもらう想定
-    public void OnTargetClicked(GameObject targetEnemy)
+// --- 2. ターゲット（敵や自分）がクリックされた時の処理 ---
+    public void OnTargetClicked(GameObject targetObj)
     {
-        // 安全装置: ターゲット選択中以外なら無視
+        // 安全装置
         if (currentState != BattleState.Targeting) return;
 
-        // ターゲット選択完了！シーケンスを開始
-        StartCoroutine(CardPlaySequence(selectedDisplay, targetEnemy));
-        
-        // 選択状態をリセット
-        CancelTargeting(); 
-    }
+        // 判定用のコンポーネント取得
+        EnemyController enemy = targetObj.GetComponent<EnemyController>();
+        PlayerManager player = targetObj.GetComponent<PlayerManager>();
+        TargetType targetType = selectedDisplay.CardData.Target;
 
+        bool isValid = false;
+
+        // ターゲットタイプ別の判定ロジック
+        switch (targetType)
+        {
+            case TargetType.Enemy:
+            case TargetType.AllEnemies: // 全体攻撃も、とりあえず敵をクリックすればOKとする
+                if (enemy != null) isValid = true;
+                break;
+
+            case TargetType.Self:
+                if (player != null) isValid = true;
+                break;
+        }
+
+        // 不正なターゲットならキャンセル
+        if (!isValid)
+        {
+            Debug.LogWarning($"ターゲット不一致: {targetType} に対して {targetObj.name} を選択しました");
+            CancelTargeting();
+            return;
+        }
+
+        // 適合したので発動シーケンスへ
+        StartCoroutine(CardPlaySequence(selectedDisplay, targetObj));
+        CancelTargeting();
+    }
     // --- 3. ターゲット選択のキャンセル ---
     public void CancelTargeting()
     {
@@ -93,66 +121,103 @@ public class BattleManager : MonoBehaviour
         currentState = BattleState.PlayerTurn;
         
         Debug.Log("ターゲット選択キャンセル");
-        // TODO: targetingUI.Hide();
+if (targetingUI != null) targetingUI.Hide();
     }
 
 
     // --- 4. カード発動シーケンス (コルーチン) ---
     // ここに「演出」と「処理」を順番に書いていく
-    private IEnumerator CardPlaySequence(CardDisplay selectedDisplay, GameObject target)
+   // --- 4. カード発動シーケンス (コルーチン) ---
+    private IEnumerator CardPlaySequence(CardDisplay display, GameObject targetObj)
     {
-        // 状態を「処理中」にして、入力をブロック
-        BattleState previousState = currentState;
         currentState = BattleState.Busy;
-        CardData cardData = selectedDisplay.CardData;
+        CardData cardData = display.CardData;
 
-        Debug.Log($"カード発動シーケンス開始: {cardData.CardName}");
+        Debug.Log($"カード発動: {cardData.CardName} (Target: {cardData.Target})");
 
-        // --- A. コストを支払う ---
+        // --- A. コスト支払い ---
         playerManager.ConsumeEnergy(cardData.Cost);
-        Debug.Log($"カードコスト支払い: {cardData.Cost} 残りエナジー{playerManager.CurrentEnergy}");
 
-        // --- B. ターゲットマーカーを消す ---
-        // targetingUI.Hide();
+        // --- B. ターゲットUI消去 (省略) ---
 
-        // --- C. 演出 (拡張ポイント) ---
-        // カードが光る、キャラが動くなど
-        // yield return StartCoroutine(PlayAttackAnimation()); 
-        Debug.Log("演出中...(1秒待機)");
-        yield return new WaitForSeconds(1.0f); // 仮の待機
+        // --- C. 演出 ---
+        yield return new WaitForSeconds(0.5f); // 演出待ち
 
-        // --- D. 効果の実処理 ---
+        // --- D. 効果の実処理 (ターゲット振り分け) ---
 
-        // ターゲットのオブジェクトから EnemyController を取得
-        EnemyController enemy = target.GetComponent<EnemyController>();
+        // 1. 「本当の効果対象」のリストを作る
+        List<object> finalTargets = new List<object>(); // EnemyController または PlayerManager が入る
 
-        if (enemy != null)
+        switch (cardData.Target)
         {
-            // カードに設定されている全効果をチェック
-            foreach (var effect in cardData.Effects)
-            {
-                // 効果の種類が「ダメージ」なら実行
-                if (effect.effectType == EffectType.Damage)
+            case TargetType.Enemy:
+                // クリックした敵単体
+                finalTargets.Add(targetObj.GetComponent<EnemyController>());
+                break;
+
+            case TargetType.AllEnemies:
+                // シーン上の全ての敵
+                var allEnemies = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
+                foreach (var enemy in allEnemies)
                 {
-                    // ★ポイント: 
-                    // enemy.TakeDamage はコルーチンなので、StartCoroutineで起動し、
-                    // yield return でその処理(演出含む)が終わるのを待つ
-                    yield return StartCoroutine(enemy.TakeDamage(effect.value));
+                    // 死んでいる敵は除外しても良い
+                    if (enemy.gameObject.activeSelf) finalTargets.Add(enemy);
                 }
-                else
+                break;
+
+            case TargetType.Self:
+                // クリックしたプレイヤー自身
+                finalTargets.Add(targetObj.GetComponent<PlayerManager>());
+                break;
+        }
+
+        // 2. 対象リスト全員に効果を適用
+        foreach (var effect in cardData.Effects)
+        {
+            foreach (var target in finalTargets)
+            {
+                // 対象が「敵」の場合
+                if (target is EnemyController enemy)
                 {
-                    Debug.LogWarning($"未対応の効果タイプ: {effect.effectType}");
+                    switch (effect.effectType)
+                    {
+                        case EffectType.Damage:
+                            // 敵へのダメージはコルーチン(演出待ちあり)
+                            yield return StartCoroutine(enemy.TakeDamage(effect.value));
+                            break;
+                        case EffectType.Block:
+                            // 敵がブロックを得る場合(実装していれば)
+                            Debug.Log($"{enemy.name} にブロック {effect.value}");
+                            break;
+                    }
+                }
+                // 対象が「プレイヤー」の場合
+                else if (target is PlayerManager player)
+                {
+                    switch (effect.effectType)
+                    {
+                        case EffectType.Damage:
+                            // 自傷ダメージ 
+                            StartCoroutine(player.TakeDamage(effect.value));
+                            break;
+                        case EffectType.Block:
+                            // ブロック獲得
+                            StartCoroutine(player.GainBlock(effect.value));
+                            break;
+                        case EffectType.Draw:
+                            // ドロー効果
+                            deckManager.DrawCard(effect.value);
+                            break;
+                    }
                 }
             }
         }
-        // target.GetComponent<Enemy>().TakeDamage(...);
 
-        // --- E. カードを捨てる ---
-        deckManager.DiscardSpecificCard(selectedDisplay);
-        // 参照を外しておく（安全のため）
+        // --- E. カード破棄 ---
+        deckManager.DiscardSpecificCard(display);
+        selectedDisplay = null;
 
-        // --- F. 処理完了 ---
-        // 勝利していなければプレイヤーターンに戻す
+        // --- F. 完了 ---
         currentState = BattleState.PlayerTurn;
     }
     public void OnEndTurnButton()

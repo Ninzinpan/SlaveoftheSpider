@@ -96,13 +96,11 @@ public class EnemyController : MonoBehaviour, IPointerClickHandler
             // プレイヤーに攻撃
             if (effect.effectType == EffectType.Damage)
             {
-                // まだPlayerManagerにTakeDamageがないので、一旦ログだけ
                 Debug.Log($"プレイヤーに {effect.value} の攻撃！");
                 
-                // 次のステップで以下のコメントアウトを外します
                 if (playerManager != null)
                 {
-                    playerManager.TakeDamage(effect.value); 
+                    yield return StartCoroutine(playerManager.TakeDamage(effect.value)); 
 
                 }
             }

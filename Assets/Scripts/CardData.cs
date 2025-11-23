@@ -17,6 +17,12 @@ public enum EffectType
     Draw    // カードを引く
     // 必要に応じて Energy (エナジー回復) などを追加
 }
+public enum TargetType
+{
+    Enemy,      // 敵単体
+    AllEnemies, // 敵全体
+    Self        // 自分自身
+}
 
 // 3. 効果の中身を定義するクラス
 // [System.Serializable] をつけることで、Unityのインスペクタでリスト表示できるようになる
@@ -25,6 +31,7 @@ public class CardEffect
 {
     public EffectType effectType; // 何をするか
     public int value;             // どのくらいするか (ダメージ量やドロー枚数)
+    public int duration;          // 効果の持続ターン数 (必要に応じて)
 }
 
 // 4. カードデータ本体 (ScriptableObject)
@@ -37,6 +44,7 @@ public class CardData : ScriptableObject
     [SerializeField] private Sprite icon;          // 絵
     [SerializeField] [TextArea] private string description; // 説明文
     [SerializeField] private CardType cardType;    // 種類
+    [SerializeField] private TargetType targetType; // ターゲットタイプ
 
     [Header("Abilities")]
     [SerializeField] private List<CardEffect> effects; // 効果のリスト
@@ -49,6 +57,7 @@ public class CardData : ScriptableObject
     public Sprite Icon => icon;
     public string Description => description;
     public CardType Type => cardType;
+    public TargetType Target => targetType;
     
     // 安全装置: リストが空(null)の場合に備えて、空のリストを返すかそのまま返す
     public List<CardEffect> Effects => effects ?? new List<CardEffect>();

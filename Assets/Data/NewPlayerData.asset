@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4361d76d7a130443b806fbd4b481c110, type: 3}
   m_Name: NewPlayerData
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBaseData
-  maxHP: 80
+  maxHP: 10
   baseEnergy: 3
   baseDrawCount: 5
   playerSprite: {fileID: -488269329879648387, guid: c20e3f726c4034a589bacf3d7f229077, type: 3}
@@ -21,10 +21,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
   - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
   - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
-  - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
-  - {fileID: 11400000, guid: 44a49b1b864e64924bdb574ec69ba173, type: 2}
   - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}
   - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}
   - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}
-  - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}
-  - {fileID: 11400000, guid: 1231f78c0c00c4c3dac1a5a19eacfb98, type: 2}
+  - {fileID: 11400000, guid: a4a7a271053dd458dbbddc73dd59b508, type: 2}
+  - {fileID: 11400000, guid: a4a7a271053dd458dbbddc73dd59b508, type: 2}
+  - {fileID: 11400000, guid: a4a7a271053dd458dbbddc73dd59b508, type: 2}

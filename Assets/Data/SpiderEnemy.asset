@@ -15,4 +15,10 @@ MonoBehaviour:
   enemyName: "\u30AF\u30BD\u30C7\u30AB\u8718\u86DB"
   maxHP: 3
   sprite: {fileID: -3438905571476058607, guid: a5e440f9421824d31b6f26a23ccf2f43, type: 3}
-  actions: []
+  actionPattern:
+  - actionName: "\u304B\u3080"
+    intentIcon: {fileID: 0}
+    effects:
+    - effectType: 0
+      value: 2
+      duration: 0
